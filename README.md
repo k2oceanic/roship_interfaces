@@ -1,12 +1,13 @@
 # RoShip Interfaces
 
-ROS2 interface definitions for marine robotic systems. This package provides standardized message types for hydraulic control and propulsion systems commonly found on ROVs (Remotely Operated Vehicles) and other underwater and autonomous ocean platforms.
+ROS2 interface definitions for marine robotic systems. This package provides standardized message types for hydraulic control, propulsion, and I/O systems commonly found on ROVs (Remotely Operated Vehicles) and other underwater and autonomous ocean platforms.
 
 ## Overview
 
 RoShip (Robotic Ship) is a collection of standards and supporting software packages for operating robotic systems in marine environments. This interface package contains message definitions organized into domain-specific sub-packages:
 
 - **[hydraulic_interfaces](hydraulic_interfaces/README.md)** - Messages for hydraulic valve control systems
+- **[io_interfaces](io_interfaces/README.md)** - Messages and services for analog outputs, digital outputs, relay control, raw sensor data, and channel triggering
 - **[propulsion_interfaces](propulsion_interfaces/README.md)** - Messages for thruster and propulsion systems
 
 ## Design Philosophy
@@ -39,6 +40,19 @@ roship_interfaces/
 │   │   ├── Valve.msg
 │   │   ├── ValveStamped.msg
 │   │   └── ValvePack.msg
+│   ├── CMakeLists.txt
+│   └── package.xml
+├── io_interfaces/
+│   ├── msg/
+│   │   ├── RawAnalog.msg
+│   │   ├── RawAnalogArray.msg
+│   │   ├── RawAnalogStamped.msg
+│   │   ├── RawDigital.msg
+│   │   ├── RawDigitalArray.msg
+│   │   ├── RawDigitalStamped.msg
+│   │   └── RawPacket.msg
+│   ├── srv/
+│   │   └── ChannelTrigger.srv
 │   ├── CMakeLists.txt
 │   └── package.xml
 ├── propulsion_interfaces/

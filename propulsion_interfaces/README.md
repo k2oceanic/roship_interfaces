@@ -1,40 +1,39 @@
 # Propulsion Interfaces
 
-ROS2 message definitions for thruster and propulsion control systems. This package provides messages that support both proportional control and calibrated thrust commands for underwater and surface vehicles.
+ROS2 message definitions for thruster and propulsion control systems. This package provides standardized interfaces for proportional and calibrated thrust commands for underwater and surface vehicles.
 
 ## Message Types
 
 ### Thrust.msg
-Core message representing thruster command with dual representation:
-- **Proportional control**: Normalized value from `-1.0` to `1.0`
-- **Calibrated thrust**: Optional `scale` factor (N per unit) allows commanded thrust in Newtons
-- **Uncalibrated mode**: `scale == 0.0` convention indicates uncalibrated thruster
+Core message representing a single thruster command with proportional and optional calibrated thrust values.
 
 ```
-float32 scale               # Thrust scale factor (N per unit proportional_value)
-                           # Set to 0.0 if uncalibrated
-float32 proportional_value  # Normalized control value from -1.0 to 1.0
-```
+int32   thruster_id         # Thruster identifier (may be indexed from 0, 1, or use hardware-specific IDs)
 
-### ThrustStamped.msg
-Time-stamped single thruster command for control loops requiring precise timing and coordination.
-
+float32 scale               # Scale factor: thrust_N = proportional_value * scale
+                            # Set to 0.0 if uncalibrated
+float32 proportional_value  # Control value from -1.0 to 1.0
 ```
-std_msgs/Header header
-Thrust          thrust
-```
-
-**Usage:** Command individual thrusters with timing information for control loops.
 
 ### ThrustArray.msg
-Array of thruster commands with common timestamp for complete propulsion system control. Variable-length array supports any thruster configuration.
+Array of thruster commands with a common timestamp for devices such as thruster controllers. The array may address any subset of thrusters — only the thrusters included in the message are affected.
 
 ```
 std_msgs/Header header
 Thrust[]        thrusts
 ```
 
-**Usage:** Command complete thruster configuration in a single message, ensuring coordinated propulsion control.
+**Usage:** Command one or more thrusters in a single message without needing to address the entire propulsion system. Well suited for speed controllers or motor controllers with multiple outputs, where all channels are driven from a single device or control loop.
+
+### ThrustStamped.msg
+Time-stamped single thruster command published on a per-thruster per-topic basis.
+
+```
+std_msgs/Header header
+Thrust          thrust
+```
+
+**Usage:** Command a single thruster without constructing a full array. Useful when multiple independent nodes need to control individual thrusters — each node publishes to its own topic without needing awareness of the other thrusters.
 
 ## Design Philosophy
 
@@ -52,6 +51,7 @@ thrust_N = proportional_value × scale
 When `scale == 0.0`, the system operates in proportional-only mode.
 
 ## Usage
+
 ### Publishing Thrust Commands
 
 ```python
@@ -62,14 +62,16 @@ msg = ThrustArray()
 msg.header.stamp = self.get_clock().now().to_msg()
 msg.header.frame_id = 'base_link'
 
-# Command calibrated thrusters
+# Command two calibrated thrusters
 thrust1 = Thrust()
-thrust1.scale = 50.0  # 50 N per unit
-thrust1.proportional_value = 0.8  # 40 N forward
+thrust1.thruster_id = 1
+thrust1.scale = 50.0             # 50 N full scale
+thrust1.proportional_value = 0.8 # 40 N forward
 
 thrust2 = Thrust()
+thrust2.thruster_id = 2
 thrust2.scale = 50.0
-thrust2.proportional_value = -0.6  # 30 N reverse
+thrust2.proportional_value = -0.6 # 30 N reverse
 
 msg.thrusts = [thrust1, thrust2]
 publisher.publish(msg)

@@ -1,2 +1,3 @@
 std_msgs/Header header
-Relay           relay
+
+RawDigital digital
